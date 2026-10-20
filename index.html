@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Carrom Aim Tool</title>
+<style>
+body {
+  margin: 0;
+  padding: 15px;
+  background: #171717;
+  color: white;
+  font-family: Arial, sans-serif;
+  text-align: center;
+}
+h2 { color: #ffd166; }
+p { color: #ddd; }
+canvas {
+  width: 100%;
+  max-width: 500px;
+  background: #d9a15b;
+  border: 5px solid #8b4513;
+  border-radius: 8px;
+  touch-action: none;
+}
+button {
+  margin: 5px;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px;
+  background: #ffd166;
+  color: #222;
+  font-weight: bold;
+}
+</style>
+</head>
+<body>
+<h2>🎯 Carrom Aim Tool</h2>
+<p>Tap the board to place the striker, coin and pocket.</p>
+
+<canvas id="board" width="400" height="400"></canvas>
+<br>
+<button onclick="mode='striker'">Place Striker</button>
+<button onclick="mode='coin'">Place Coin</button>
+<button onclick="mode='pocket'">Place Pocket</button>
+<button onclick="draw()">Reset Lines</button>
+<p id="info">Select a position to begin.</p>
+
+<script>
+const canvas = document.getElementById("board");
+const ctx = canvas.getContext("2d");
+
+let mode = "striker";
+let striker = {x: 200, y: 330};
+let coin = {x: 200, y: 190};
+let pocket = {x: 355, y: 45};
+
+function draw() {
+  ctx.clearRect(0, 0, 400, 400);
+
+  ctx.fillStyle = "#f1d09a";
+  ctx.fillRect(20, 20, 360, 360);
+
+  ctx.strokeStyle = "#713b18";
+  ctx.lineWidth = 3;
+  ctx.strokeRect(35, 35, 330, 330);
+
+  [[35,35],[365,35],[35,365],[365,365]].forEach(([x,y]) => {
+    ctx.beginPath();
+    ctx.arc(x,y,13,0,Math.PI*2);
+    ctx.fillStyle = "#171717";
+    ctx.fill();
+  });
+
+  ctx.strokeStyle = "#008cff";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(striker.x, striker.y);
+  ctx.lineTo(coin.x, coin.y);
+  ctx.stroke();
+
+  const dx = coin.x - pocket.x;
+  const dy = coin.y - pocket.y;
+  const length = Math.hypot(dx,dy) || 1;
+  const ux = dx/length;
+  const uy = dy/length;
+  const ghost = {x:coin.x + ux*24, y:coin.y + uy*24};
+
+  ctx.setLineDash([6,4]);
+  ctx.strokeStyle = "#e63946";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(striker.x, striker.y);
+  ctx.lineTo(ghost.x, ghost.y);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = "#2878d0";
+  ctx.beginPath();
+  ctx.arc(striker.x,striker.y,12,0,Math.PI*2);
+  ctx.fill();
+
+  ctx.fillStyle = "#f8f8f8";
+  ctx.beginPath();
+  ctx.arc(coin.x,coin.y,10,0,Math.PI*2);
+  ctx.fill();
+  ctx.strokeStyle="#333";
+  ctx.stroke();
+
+  ctx.fillStyle = "#111";
+  ctx.beginPath();
+  ctx.arc(pocket.x,pocket.y,11,0,Math.PI*2);
+  ctx.fill();
+
+  document.getElementById("info").textContent =
+    "Blue = Striker | White = Coin | Black = Pocket";
+}
+
+canvas.addEventListener("pointerdown", function(e) {
+  const rect = canvas.getBoundingClientRect();
+  const x = (e.clientX-rect.left)*400/rect.width;
+  const y = (e.clientY-rect.top)*400/rect.height;
+
+  if(mode==="striker") striker={x,y};
+  if(mode==="coin") coin={x,y};
+  if(mode==="pocket") pocket={x,y};
+  draw();
+});
+
+draw();
+</script>
+</body>
+</html>
